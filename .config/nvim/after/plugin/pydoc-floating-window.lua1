@@ -1,0 +1,91 @@
+-- Check if Neovim is running
+if vim.fn.has('nvim') == 1 then
+  -- Function to show Python documentation in a floating window
+  function PyDocVim()
+    -- Execute the Python code
+    vim.api.nvim_exec([[
+      python3 << EOF
+import jedi
+
+curfile = vim.current.buffer.name
+row = vim.current.window.cursor[0]
+col= vim.current.window.cursor[1]
+
+script = jedi.Script(
+    code=None,
+    path=curfile)
+
+try:
+   definitions = script.help(line=row, column=col)
+   # definitions = script.goto_definitions()
+except Exception:
+   # print to stdout, will be in :messages
+   definitions = []
+   print("Exception, this shouldn't happen.")
+   print(traceback.format_exc())
+
+   if not definitions:
+	   echo_highlight("No documentation found for that.")
+	   vim.command("return")
+
+docs = []
+for d in definitions:
+   doc = d.docstring()
+   if doc:
+	   title = "Docstring for %s" % d.full_name
+	   underline = "=" * len(title)
+	   docs.append("%s\n%s\n%s" % (title, underline, doc))
+   else:
+	   docs.append("|No Docstring for %s|" % d)
+   text = ("\n" + "-" * 79 + "\n").join(docs)
+vim.command("let docWidth = %s" % len(title))
+vim.command("let doc_lines = %s" % len(text.split("\n")))
+EOF
+    ]], false)
+
+    -- Get the documentation text from Python
+    local doc_text = vim.api.nvim_eval("py3eval('text')")
+    local width = math.floor(vim.o.columns * 0.9)
+    local height = math.floor(vim.o.lines * 0.6)
+    local buf = vim.api.nvim_create_buf(false, true)
+
+    -- Set buffer lines
+    vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(doc_text, '\n'))
+
+    -- Create floating window
+    local opts = {
+      relative = 'editor',
+      row = (vim.o.lines - height) / 2,
+      col = (vim.o.columns - width) / 2,
+      width = width,
+      height = height,
+    }
+    local win = vim.api.nvim_open_win(buf, true, opts)
+    vim.api.nvim_win_set_option(win, 'winhighlight', 'NormalFloat:Normal')
+
+    -- Set up key mappings for scrolling and closing
+    local function popup_filter(_, key)
+      if key == '<c-k>' then
+        vim.api.nvim_win_call(win, function() vim.cmd('normal! <c-y>') end)
+        return true
+      elseif key == '<c-j>' then
+        vim.api.nvim_win_call(win, function() vim.cmd('normal! <c-e>') end)
+        return true
+      elseif key == 'q' or key == 'x' then
+        vim.api.nvim_win_close(win, true)
+        return true
+      end
+      return false
+    end
+    vim.api.nvim_set_keymap('n', '<c-k>', ':lua popup_filter(nil, "<c-k>")<CR>', { noremap = true, silent = true })
+    vim.api.nvim_set_keymap('n', '<c-j>', ':lua popup_filter(nil, "<c-j>")<CR>', { noremap = true, silent = true })
+    vim.api.nvim_set_keymap('n', 'q', ':lua popup_filter(nil, "q")<CR>', { noremap = true, silent = true })
+    vim.api.nvim_set_keymap('n', 'x', ':lua popup_filter(nil, "x")<CR>', { noremap = true, silent = true })
+  end
+
+  -- Set key mapping for Python files
+  vim.api.nvim_exec([[
+    autocmd FileType python nnoremap <buffer> K :lua PyDocVim()<CR>
+  ]], false)
+end
+

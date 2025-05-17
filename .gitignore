@@ -1,0 +1,25 @@
+### Ignore all files by default ###
+*
+!.gitignore
+!README.md
+
+### Include the contents listed below ###
+
+# .bashrc
+!.bashrc
+
+# .local
+!.local
+!.local/scripts
+
+# .config
+!.config
+!.config/tmux
+!.config/tmux/**
+!.config/nvim
+!.config/nvim/**
+
+# fonts
+!.fonts
+!.fonts/**
+
