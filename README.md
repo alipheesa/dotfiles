@@ -20,3 +20,4 @@ postman
 telegram
 slack
 
+vlc

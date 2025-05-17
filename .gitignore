@@ -8,6 +8,7 @@
 # .bashrc
 !.bashrc
 
+
 # .local
 !.local
 !.local/scripts
@@ -18,6 +19,10 @@
 !.config/tmux/**
 !.config/nvim
 !.config/nvim/**
+
+# .dconf (Ubuntu 22.04 settings - load via 'dconf load / < ~/.config/dconf/settings-backup')
+!.config/dconf
+!.config/dconf/**
 
 # fonts
 !.fonts
