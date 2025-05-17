@@ -13,7 +13,7 @@ jq
 htop
 docker
 
-tmux, neovim (+codeium), pycharm, vscode
+tmux, neovim v0.10.2 (+codeium), pycharm, vscode
 firefox, chrome (+adblock)
 postman
 
